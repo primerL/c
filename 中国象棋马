@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include<stdlib.h>
+int step[1000][1000]={0};
+int chess[100][100]={0};//初始化棋盘数组 
+int move[8][2]={{1,2},{2,1},{1,-2},{2,-1},{-1,-2},{-2,-1},{-1,2},{-2,1}};
+void path(int x,int y,int a,int b,int n,int m){
+	int head=0,tail=1;
+	int queue[10000][4];//队列记录已到达点坐标，所需步数 
+	chess[x][y]=1;
+	queue[head][0]=x;
+	queue[head][1]=y;
+	queue[head][2]=0;
+	step[x][y]=queue[head][2];
+	while(head<tail){
+		for(int i=0;i<8;i++){
+			int x_new=queue[head][0]+move[i][0];
+			int y_new=queue[head][1]+move[i][1];
+			if(x_new>=0&&y_new>=0&&x_new<n&&y_new<m&&chess[x_new][y_new]==0){
+				queue[tail][0]=x_new;
+				queue[tail][1]=y_new;
+				queue[tail][2]=queue[head][2]+1;
+				step[x_new][y_new]=queue[tail++][2];
+				chess[x_new][y_new]=1;
+				if(x_new==a&&y_new==b){
+					printf("%d",step[a][b]);
+					return ;
+				}
+			} 
+		}
+		head++;
+	} 
+	printf("NO");
+	return ;
+}
+int main(){
+    /**********start**********/
+    int n,m;
+    scanf("%d%d",&n,&m);//限定棋盘大小 
+    int x,y;
+    scanf("%d%d",&x,&y);//初始坐标 
+    int a,b;
+    scanf("%d%d",&a,&b);//目标坐标 
+    path(x,y,a,b,n,m);
+
+
+    /**********end************/
+    return 0;
+}  
