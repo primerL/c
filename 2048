@@ -1,0 +1,881 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>        //常用数学函数 
+#include<conio.h>      ///getch()
+#include<time.h>      //随机数
+#include<windows.h>  //颜色，清屏（每一次按键后清屏重新打印），sleep暂停 
+
+
+int length,wide;
+int str[100][100]={{0}} ;//定义全局数组 
+int str_old[100][100];//备份数组，用来比较前后是否有变化 
+int getch();   //读取上下左右键
+char arr[100][100];
+int step=0;//序列长度 
+int operation_number=0;//操作数 
+char operation[1000];//记录操作 
+double all_addmore_scores=0;;
+double basic_scores=0; 
+double add_scores=0;
+double addmore_scores=0;
+int add_times=0;
+int addmore_times=0;
+int flag=0;
+int add_times_max=0;
+int addmore_times_max=0;
+double add_scores_max=0;
+double addmore_scores_max=0;
+int x;
+char auto_operation[10]={'w','s','a','d'};
+
+void print();//打印棋盘 
+void rnum(); //产生随机数
+void dir();//合并移动数字等 
+void printmap();//打印初始页面
+void printhelp();//打印help页面
+void restart();//重新开始游戏 
+void gameover();//判断游戏失败 
+void Menu();//菜单页面 
+void Diy();//创建自定义文件 
+void Diy_write();//写入自定义文件 
+void Establish_operation();//创建输出文件 
+void Establish_gamescore();//创建分数输出文件 
+void old();//备份数组
+int move();//判断操作之后棋盘是否变化
+void restart();//重新开始游戏
+void judge();// 判断是否合并，合并几组 
+
+int fiber(int number)//计算分数 
+{
+	if(number<=1){
+		return number;
+	}
+	else
+	return fiber(number-1)+fiber(number-2);
+}
+
+void printstart()//打印初始棋盘
+{
+	  srand(time(0));
+      int  x1,x2,y2,y1;
+      x1=rand()%length;
+      y1=rand()%wide;
+      x2=rand()%length;
+      y2=rand()%wide;
+   do //判断空位
+   {
+   if(x1!=x2 || y1!=y2)
+   {
+     break;
+   }
+   x2=rand()%length;   //若没有空位重新生成坐标
+   y2=rand()%wide;
+   } while(1);
+   
+      str[x1][y1]=2;
+      str[x2][y2]=2;   //第一次随机选择两个格子赋值为2
+      system("cls"); 
+	
+} 
+
+void print(int str[100][100],char arr[100][100]) // 打印棋盘 
+{
+	for(int i=0;i<length-1;i++){
+	  printf("*-------");
+	}
+	printf("*-------*\n");
+      for(int i=0;i<wide;i++)
+      { 
+        for(int j=0;j<length;j++){
+        if(str[i][j]==0) //如果是0就不打印 
+        printf("\t|");
+        else{
+        	int temp=str[i][j];
+        	temp=log2(temp)-1;
+        	if(flag==0)
+        	printf("%s\t|",arr[temp]);
+        	else
+        	printf("%d\t|",str[i][j]);
+        	
+		}
+        if (j>length-2)
+        printf("\n");}
+        for(int i=0;i<length-1;i++){
+	    printf("*-------");
+	    }
+	    printf("*-------*\n");
+        }
+        printf("已连击次数：%d\n",add_times);
+        printf("当前连击奖励分数：%d\n",fiber(add_times));
+        printf("合并次数：%d\n",addmore_times);
+        printf("单次多合奖励分数：%lf\n",addmore_scores);
+        
+}
+
+int move()//判断操作之后棋盘是否变化 
+{
+	int sign=0; 
+	for(int i=0;i<wide;i++)
+	{
+		for(int j=0;j<length;j++)
+		{
+			if(str_old[i][j]!=str[i][j])
+			{
+			sign=1;
+			goto out;}
+			else
+			continue;
+		}
+	}
+	out:
+	return sign;
+ } 
+ 
+void rnum(int str[100][100])//获取随机数
+{
+   srand(time(0));
+   int x=rand()%length;
+   int y=rand()%wide; //随机一个坐标
+   int num=(rand()%2+1)*2;//随机产生2或4 
+do //判断空位
+{
+   if(str[x][y]==0)
+   {
+     str[x][y]=num; //给随机一个空位赋值2或4
+     break;
+   }
+   x=rand()%length;   //若没有空位重新生成坐标
+   y=rand()%wide;
+} while(1);
+}
+
+void judge(){
+	int number1=0,i,j,number2=0;
+	for(i=0;i<length;i++){
+		for(j=0;j<wide;j++){
+			if(str[i][j]!=0){
+				number1++;
+			}
+		}
+	}
+	for(i=0;i<length;i++){
+		for(j=0;j<wide;j++){
+			if(str_old[i][j]!=0){
+				number2++;
+				
+			}
+		}
+	}
+	if(number1==number2){
+		add_times=0;
+	}
+	else{
+		add_times++;
+		if(number2-number1>1){
+			addmore_times=number2-number1;
+		}
+		else{
+			addmore_times=0;
+			addmore_scores=0;		
+		}
+		if(addmore_times>addmore_times_max){
+			addmore_times_max=addmore_times;
+		} 
+		if(add_times>add_times_max){
+			add_times_max=add_times;
+		}
+		if(fiber(add_times)>add_scores_max){
+			add_scores_max=fiber(add_times);
+		}
+		if(addmore_scores>addmore_scores_max){
+			addmore_scores_max=addmore_scores;
+		}
+		all_addmore_scores+=addmore_scores;
+		addmore_times=number2-number1;
+		add_scores+=fiber(add_times);
+		
+	}
+} 
+void dir(char Direction) //移动数字函数，随时输入h得到help页面 ,选择重新开始； 
+{
+   switch(Direction)
+   {
+   	Direction = getch();//从键盘读取 
+   
+       case 97: // 左移a
+       case 75: // 左移方向键
+       {
+       	for(int i=0;i<wide;i++)//先判断是否可以合并 
+       	{
+       		for(int j=0;j<length-1;j++)//从左上开始判断 
+       		{
+       			if(str[i][j]!=0) //找到第一个不为0的数 
+				   {
+				   	  int m=j+1;
+                      while(str[i][m]==0 && m<length-1)// 找到距离最近的第一个不为0的数 
+                      {
+                      	m++;
+					  }
+					  if(str[i][m]==str[i][j])//相同则合并 
+					  {
+					  	str[i][j]*=2;
+					  	str[i][m]=0;
+					  	addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	continue; //继续判断下一位 
+					  }
+					  else
+					  continue; // 循环继续 
+				   } 
+       			
+			   }
+		   }
+		   
+		   
+		   
+       	for(int i=0;i<wide;i++)//将数字进行左移 
+       	{
+       		for(int j=0;j<length;j++)
+       		{
+       			if(str[i][j]==0)//若这一格为0 
+       			{
+				   for(int k=j+1;k<length;k++)
+				   {
+				   	  if(str[i][k]!=0) //找到0右边第一个不为0的数，移到左起0格 
+				   	  {
+				   	  	str[i][j]=str[i][k];
+					    str[i][k]=0;
+					    j=0;
+						break; 
+						 }
+					} 
+			    }
+			   
+	        }
+		}
+	   } break;	 
+       
+       
+               
+        case 100: //右移d
+        case 77: //方向键右
+    { 
+        for(int i=0;i<wide;i++)//先判断是否可以合并 
+       	{
+       		for(int j=length-1;j>0;j--)
+       		{
+       			if(str[i][j]!=0)
+				   {
+				   	  int m=j-1;
+                      while(str[i][m]==0 && m>0)
+                      {
+                      	m--;
+					  }
+					  if(str[i][m]==str[i][j])
+					  {
+					  	str[i][j]*=2;
+					  	str[i][m]=0;
+					  	addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	all_addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	continue;
+					  }
+					  else
+					  continue;
+				   } 
+       			
+			   }
+		   }
+		   
+		   
+		   
+		   
+		   for(int i=0;i<wide;i++)//将数字进行右移 
+       	{
+       		for(int j=length-1;j>=0;j--)
+       		{
+       			if(str[i][j]==0)//若这一格为0 
+       			{
+				   for(int k=j-1;k>=0;k--)
+				   {
+				   	  if(str[i][k]!=0) //找到0左边第一个不为0的数，移到右起0格 
+				   	  {
+				   	  	str[i][j]=str[i][k];
+					    str[i][k]=0;
+					    
+                         break; 
+						 }
+					} 
+			    }
+			    
+	        }
+		}
+	   } break;	 
+       
+		   
+	
+        case 119: //上移w
+        case 72: //方向键上
+        {
+        for(int j=0;j<length;j++)//先判断是否可以合并 
+       	{
+       		for(int i=0;i<wide-1;i++)
+       		{
+       			if(str[i][j]!=0)
+				   {
+				   	  int m=i+1;
+                      while(str[m][j]==0 && m<wide-1)
+                      {
+                      	m++;
+					  }
+					  if(str[m][j]==str[i][j])
+					  {
+					  	str[i][j]*=2;
+					  	str[m][j]=0;
+					  	addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	all_addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	continue;
+					  }
+					  else
+					  continue;
+				   } 
+       			
+			   }
+		   }
+		   
+		   
+		   
+		   
+		   for(int i=0;i<wide;i++)//将数字进行上移 
+       	{
+       		for(int j=0;j<length;j++)
+       		{
+       			if(str[i][j]==0)//若这一格为0 
+       			{
+				   for(int k=i+1;k<wide;k++)
+				   {
+				   	  if(str[k][j]!=0) //找到0下边第一个不为0的数，移到上起0格 
+				   	  {
+				   	  	str[i][j]=str[k][j];
+					    str[k][j]=0;
+						break; 
+						 }
+					} 
+			    }
+			    
+	        }
+		}
+        	
+
+   }break;
+
+
+        case 115: //下移s
+        case 80: //方向键下 
+        {
+        for(int j=0;j<length;j++)//先判断是否可以合并 
+       	{
+       		for(int i=wide-1;i>0;i--)
+       		{
+       			if(str[i][j]!=0)
+				   {
+				   	  int m=i-1;
+                      while(str[m][j]==0 && m>0)
+                      {
+                      	m--;
+					  }
+					  if(str[m][j]==str[i][j])
+					  {
+					  	str[i][j]*=2;
+					  	str[m][j]=0;
+					  	addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	all_addmore_scores+=((log2(str[i][j]))-1)*exp((log2(str[i][j]))-1);
+					  	continue;
+					  }
+					  else
+					  continue;
+				   } 
+       			
+			   }
+		   }
+		   
+		   		   
+		   for(int i=wide-1;i>=0;i--)//将数字进行下移 
+       	{
+       		for(int j=0;j<length;j++)
+       		{
+       			if(str[i][j]==0)//若这一格为0 
+       			{
+				   for(int k=i-1;k>=0;k--)
+				   {
+				   	  if(str[k][j]!=0) //找到0上边第一个不为0的数，移到下起0格 
+				   	  {
+				   	  	str[i][j]=str[k][j];
+					    str[k][j]=0;
+						break; 
+						 }
+	  
+					} 
+			    }
+			    
+	        }
+		}
+        	
+
+   }break;
+    
+        case 104:
+		{
+        	printhelp();
+        	system("pause");
+			break;}
+		
+		 case 114:
+		{
+			restart();
+			break;
+		}
+		
+	   	case 'q':
+	   	{
+	   		char input;
+	   		printf("是否要退出游戏【Y/N】");
+	   		Start:
+	   		input=getch();
+			switch(input)
+			{
+				case 'y':
+					{
+						exit(0);
+						break;
+					}
+				case 'n':
+					{
+						printf("游戏继续");
+						break; 
+					}
+
+					
+				default:
+				  printf("无效输入");
+				  goto Start; 
+			}
+		     break;	
+		   }
+		   
+	   case 103:
+	   case 71:
+	   {
+	   	 int i=0;
+	   	 printf("请输入操作数x：");
+	   	scanf("%d",&x); 
+		 for(i=0;i<x;i++){
+		 	addmore_scores=0;
+		 	old();
+		 	dir(auto_operation[i%4]);
+            judge();
+            int sign=move();
+            if(sign==1){
+            	rnum(str);
+			}
+			print(str,arr);
+			Sleep(3000);
+            gameover();
+            operation[operation_number]=auto_operation[i%4];
+            operation_number++;
+		 }
+	   	 }break;
+				 
+       default:
+       printf("dir无效输入"); 
+       system("pause");
+       break;  
+  
+   }
+ 
+}
+
+void printmap()//打印初始页面 
+{
+    printf("╔══════════════════════════════════════════════╗\n"); 
+	printf("║                                              ║\n");
+	printf("╟                                              ╢\n");
+	printf("║                                              ║\n");
+	printf("║  ══════╗   ╔══════╗    ║   ║      ╔══════╗   ║\n");
+	printf("║        ║   ║      ║    ║   ║      ║      ║   ║\n");
+	printf("║        ║   ║      ║    ║   ║      ║      ║   ║\n");
+	printf("║  ╔═════╝   ║      ║    ║   ║      ║══════║   ║\n");
+	printf("║  ║         ║      ║    ╚═══║════  ║      ║   ║\n");
+	printf("║  ║         ║      ║        ║      ║      ║   ║\n");
+	printf("║  ╚══════   ╚══════╝        ║      ╚══════╝   ║\n");
+	printf("║                                              ║\n");
+	printf("║                                              ║\n");
+	printf("║                                              ║\n");
+	printf("║  3s后自动跳转页面                            ║\n");
+	printf("╚══════════════════════════════════════════════╝\n");
+    Sleep(3000);
+    system("cls");
+	
+}
+
+void printhelp()// 打印help页面 
+{
+	printf("╔══════════════════════════════════════════════╗\n"); 
+	printf("║                Help Information              ║\n");
+	printf("╟──────────────────────────────────────────────╢\n");
+	printf("╟                                              ║\n");
+	printf("║           h  : help info                     ║\n");
+	printf("║           s  : start game                    ║\n");
+	printf("║           w/↑: merge up                     ║\n");
+	printf("║           s/↓: merge down                   ║\n");
+	printf("║           a/←: merge left                   ║\n");
+	printf("║           d/→: merge right                  ║\n");
+	printf("║           q  : quit                          ║\n");
+	printf("║           g  ： auto                         ║\n");
+	printf("║                                              ║\n");
+	printf("║                                              ║\n");
+	printf("║                                              ║\n");
+	printf("╚══════════════════════════════════════════════╝\n");
+ } 
+
+void old()//更新备份数组 
+{
+	for(int i=0;i<wide;i++)
+	{
+		for(int j=0;j<length;j++)
+		{
+			str_old[i][j]=str[i][j];
+		}
+	 } 
+ } 
+
+ 
+void gameover()//判断游戏结束 
+{
+	int over,i,j,operation;
+	over=0;
+	for(i=0;i<wide;i++)
+	{
+		for(j=0;j<length;j++)
+		{
+			if(str[i][j]==0)
+			{
+				over=1;
+				break;
+			}
+			else if(str[i][j]==pow(2,step))
+			{
+				printf("\n恭喜你成功合成%s,游戏通关",arr[step-1]);
+				basic_scores=length*wide*10*exp(step)-log2(operation_number); 
+				printf("\n基础分数为:%lf\n",basic_scores);
+				printf("连击奖励分数总和：%lf\n",add_scores);
+				printf("多合奖励分数总和：%lf\n",all_addmore_scores);
+				printf("游戏总得分为：%lf",basic_scores+add_scores+all_addmore_scores);
+				Establish_gamescore();
+				Establish_operation();
+				over=1;
+			Start:
+			printf("是否要重新开始游戏【Y/N】");
+	        Loop:
+             switch(getch())
+          	{case 121://如果选择Y(yes) 
+        	 {
+	         system("cls");
+	          int i,j;
+	         for(i=0;i<wide;i++)
+	         {
+	      	for(j=0;j<length;j++)
+	      	{
+	 		str[i][j]=0;
+	 		str_old[i][j]=0;
+	   	   }
+	       }
+	       step=0;
+	       Diy();
+	       Menu();
+	       }
+	
+        	case 110: //如果选择N(no) 
+        	{
+	     	printf("游戏结束");
+		   exit(0); 
+	
+         	}break;
+	
+          default:
+          printf("gameover无效输入"); 
+          system("pause");
+          goto Loop;
+          break;
+		}
+		}
+	    } 
+	    }
+	 
+	 if(over==0)
+	 {
+	 	for(i=0;i<=wide-1;i++)
+	 	{
+	 		for(j=0;j<=length-1;j++)
+	 		{
+	 			if((str[i][j]==str[i+1][j] || str[i][j]==str[i][j+1]) && (j<length-1) && (i<wide-1))
+	 			{
+	 				over=1;
+	 				continue;
+	 				
+				 }
+				else if(str[i][length-1]==str[i+1][length-1] && i!=wide-1)
+				{
+					over=1;
+					continue;
+				}
+				else if(str[wide-1][j]==str[wide-1][j+1] && j!=length-1)
+				{
+					over=1;
+					continue;
+				}
+
+			 }
+				  
+			 }
+			 
+		if(over==0)
+			 {
+			 	printf("游戏失败");
+			 	basic_scores=0;
+			 	printf("\n基础分数为:%lf\n",basic_scores);
+				printf("连击奖励分数总和：%lf\n",add_scores);
+				printf("多合奖励分数总和：%lf\n",all_addmore_scores);
+				printf("游戏总得分为：%lf\n",basic_scores+add_scores+all_addmore_scores);
+				Establish_gamescore();
+				Establish_operation();
+			 	goto Start;
+	 }	 
+		 }		  
+} 
+
+ 
+void restart()
+{   printf("是否要重新开始游戏【Y/N】");
+	Loop:
+	switch(getch())
+	{case 121://如果选择Y(yes) 
+	 {
+	 system("cls");
+	 int i,j;
+	 for(i=0;i<wide;i++)
+	 {
+	 	for(j=0;j<length;j++)
+	 	{
+	 		str[i][j]=0;
+	 		str_old[i][j]=0;
+		 }
+	 }
+	 step=0;
+	 Diy();//再次自定义 
+	 Menu(); 
+	 }
+	case 110: //如果选择N(no) 
+	{
+		printf("游戏继续"); 
+	
+	}break;
+	
+    default:
+      printf("重新开始页面无效输入"); 
+      system("pause");
+    goto Loop;//重新输入 
+    break; 
+ } }
+ 
+void set_length_wide(){
+	char input;
+	Start:
+	input=getch();
+	if(input=='y'){
+		printf("\n请输入长和宽"); 
+		scanf("%d%d",&length,&wide); 
+	}
+	else if(input=='n'){
+		printf("\n自动设定长和宽为4\n");
+		length=4;
+		wide=4;	 
+	}
+	else {
+		printf("set_length_wide无效输入");
+		goto Start; 
+	}	
+} 
+void Menu(){
+	printf("是否自定义长和宽【y/n】");
+    set_length_wide();
+	printf("╔══════════════════════════════════════════════╗\n"); 
+	printf("║                welcome to 2048               ║\n");
+	printf("╟──────────────────────────────────────────────╢\n");
+	printf("║please choose one command:                    ║\n");
+	printf("║                                              ║\n");
+	printf("║              ┌───┐                           ║\n");
+	printf("║              │ h │ help                      ║\n");
+	printf("║              └───┘                           ║\n");
+	printf("║              ┌───┐                           ║\n");
+	printf("║              │ s │ start                     ║\n");
+	printf("║              └───┘                           ║\n");
+	printf("║              ┌───┐                           ║\n");
+	printf("║              │ q │ quit                      ║\n");
+	printf("║              └───┘                           ║\n");
+	printf("║                                              ║\n");
+	printf("║                                              ║\n");
+	printf("╚══════════════════════════════════════════════╝\n"); 
+    char input;
+	input=getch(); 
+    while(input!='q')
+    {
+    
+	if(input=='h')  //打印help页面 
+      {
+      	printhelp();
+       }
+       
+     else if(input =='s') 
+    {
+	 printstart();  
+	 print(str,arr);
+	 char Direction;
+     Direction=getch();
+     operation[operation_number]=Direction;
+     operation_number++;
+    while(1)
+    {
+      int sign;
+      old();
+      addmore_scores=0;
+      dir(Direction);
+      judge();
+      sign=move();
+	  if(sign==0)
+	  {
+	  	goto Loop;//跳过随机生成数字这一项 
+	   } 
+	   
+      rnum(str);
+      system("cls");//清屏
+      print(str,arr);
+      gameover();
+      
+      Loop:
+      addmore_scores=0;
+      Direction=getch();
+      operation[operation_number]=Direction;
+      operation_number++;
+    }    
+    }
+   else {
+        printf("菜单无效指令\n");       
+    }  
+    input=getch();
+    }
+
+    if (input =='q')
+       {
+           printf("退出游戏");
+           exit(0);
+       }     
+      }
+ 
+
+void Establish_gamescore(){
+	FILE *fp=fopen("score.txt","w");
+	if(fp==NULL){
+		printf("\t\t创建文件失败，即将退出程序"); 
+		Sleep(3000);
+		exit(0); 
+	}
+	else{
+		FILE *fp=fopen("score.txt","at+"); 
+		fprintf(fp,"基础分数：%lf\n",basic_scores);
+		fprintf(fp,"连击奖励分数总和：%lf\n",add_scores);
+		fprintf(fp,"多合奖励分数总和：%lf\n",all_addmore_scores);
+		fprintf(fp,"游戏总得分：%lf\n",basic_scores+add_scores+all_addmore_scores);
+		fprintf(fp,"最高连击数：%d\n",add_times_max);
+		fprintf(fp,"最高连击得分：%lf\n",add_scores_max);
+		fprintf(fp,"最高多合次数：%d\n",addmore_times_max);
+		fprintf(fp,"最高多合得分：%lf\n\n",addmore_scores_max);
+	}
+	fclose(fp);
+}
+ 
+void Diy(){
+	FILE *fp1=fopen("diy game.txt","w");
+	if(fp1==NULL){
+		printf("\t\t自定义文件创建失败，即将退出程序"); 
+		Sleep(3000);
+		exit(0); 
+	}
+	else
+	Diy_write(); 	
+} 
+void Diy_write(){	
+    char write;
+    int i;
+    printf("是否自定义游戏？【y/n】");
+    while(1){
+      scanf(" %c",&write);
+      if(write=='y'){
+          FILE *fp=fopen("diy game.txt","at+");
+          printf("请输入序列长度"); 
+          scanf("%d",&step);
+	      fprintf(fp,"%d\n",step);
+          printf("\n请自定义名称\n"); 
+	         for(i=0;i<step;i++){
+		       scanf("%s",&arr[i]);
+		       fprintf(fp,"%s",arr[i]);
+          	}
+	     fclose(fp);  
+	     break;	
+	}
+    	else if(write=='n'){
+	      flag=1;
+		break; 
+    	}
+	    else{
+		  printf("自定义游戏输入错误，请重新输入"); 
+     	}
+	}
+}
+void Establish_operation(){
+	FILE *fp=fopen("operation.txt","w+");
+	if(fp==NULL){
+		printf("\t\t创建文件失败，即将退出程序"); 
+		Sleep(3000);
+		exit(0); 
+	}
+	else{
+		FILE *fp=fopen("operation.txt","at+");
+		fprintf(fp,"%d\n",operation_number);
+		fprintf(fp,"%s\n",operation);	
+	}
+	fclose(fp);
+}
+int main(){
+	system("mode con cols=60 lines=30");//显示框大小控制函数 cols：长  lines：宽 
+	system("color F0"); //控制字体和背景颜色； 
+    printmap();//打印初始页面 
+    Diy();
+    Menu();
+    return 0;   
+}
+
+    
+
+
+
+        
+
+    
+    
+    
+
+
+    
+ 
+
+
+ 
