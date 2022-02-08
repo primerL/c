@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAXN 10
+
+int ans[MAXN];
+bool col[MAXN], line1[2*MAXN+5], line2[2*MAXN+5];   //第j列是否被用过,每条对角线是否被用过的状态
+bool *lin1 = line1 + MAXN, *lin2 = line2;           //一个为了使用负下标的trick
+int n;
+
+void dfs(int i)		//i:当前要枚举第i行的数放第几列
+{
+    if(i == n+1)
+    {
+        for(int k = 1; k <= n; ++k) printf("%d ",ans[k]);
+        printf("\n");
+        return;
+    }
+    
+	for(int j = 1; j <= n; ++j)
+    {
+        if(!col[j] && !lin1[i-j] && !lin2[i+j])
+        {
+            col[j] = lin1[i-j] = lin2[i+j] = true;
+            ans[i] = j;
+            dfs(i + 1);
+            col[j] = lin1[i-j] = lin2[i+j] = false;
+        } 
+    }
+    return;
+}
+
+int main()
+{
+    printf("input n: ");
+    scanf("%d",&n);
+    dfs(1);
+    return 0;
+}
