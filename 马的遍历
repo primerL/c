@@ -1,0 +1,57 @@
+//马的遍历
+
+#include <stdio.h>
+
+#define MAXN 405
+
+struct POINT
+{
+    int x,y;
+}queue[MAXN*MAXN];                          //定义一个数组queue,每个元素是一个点
+                                            //这里是用数组模拟队列,如果对空间的要求严格可以用链表实现队列
+int tail = 0, head = 1;                     //队列的队首和队尾下标
+
+typedef struct POINT point;
+
+int N,M,x_0,y_0;
+int dis[MAXN][MAXN];                        //答案数组
+const int dx[8] = {-2,-1,1,2,2,1,-1,-2};    //马每次能走的8个方向
+const int dy[8] = {1,2,2,1,-1,-2,-2,-1};
+
+int main()
+{
+    printf("input N,M,X0,Y0: ");
+    scanf("%d%d%d%d",&N,&M,&x_0,&y_0);
+    //初始状态设定
+    for(int i = 1; i <= N; ++i)
+        for(int j = 1; j <= M; ++j)
+            dis[i][j] = -1;
+    dis[x_0][y_0] = 0;
+    queue[++tail] = (point) {x_0, y_0};
+
+    //BFS主体部分
+    while(head <= tail)
+    {
+        point now = queue[head++];
+        int nowx = now.x, nowy = now.y;
+        for(int k = 0; k < 8; ++k)
+        {
+            int newx = nowx + dx[k], newy = nowy + dy[k];
+            if(newx >= 1 && newx <= N && newy >= 1 && newy <= M && dis[newx][newy] == -1)
+            {
+                dis[newx][newy] = dis[nowx][nowy] + 1;      //记录到达新点的步数
+                queue[++tail] = (point) {newx, newy};
+            }
+        }
+    }
+    //输出答案
+    for(int i = 1; i <= N; ++i)
+    {
+        for(int j = 1; j <= M; ++j)
+        {
+            printf("%-5d",dis[i][j]);
+        }
+        printf("\n");
+    }
+    return 0;
+}   
