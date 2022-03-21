@@ -1,0 +1,65 @@
+#include<iostream>
+#include<ctime>
+#include<ctype.h>
+using namespace std;
+int row,column,bomb_number;
+int **bomb_map;
+int **bomb_map_update;
+void creat_map(){
+    cout<<"please input row column and bomb number(LB)"<<endl;
+    while(!(cin>>row>>column>>bomb_number) || row*column<bomb_number || row<=0 || column<=0 || bomb_number<=0){
+        cout<<"wrong,please input row column and bomb number(LB)"<<endl;
+        cin.clear();
+        cin.sync();
+    }
+    row+=2;
+    column+=2;
+    bomb_map = new int*[row];
+    bomb_map_update = new int*[row];
+    for(int i=0; i<row; i++){
+        bomb_map[i] = new int[column]();
+        bomb_map_update[i] = new int[column]();
+    }
+}
+
+void rnum(){
+    srand(time(NULL));
+    int x = rand()%(row-2)+1;
+    int y = rand()%(column-2)+1;
+    do{
+        if(bomb_map[x][y]==0){
+            bomb_map[x][y]=1;
+            break;
+        }
+        x = rand()%(row-2)+1;
+        y = rand()%(column-2)+1;
+    }while(1);
+}
+
+void creat_bomb(){
+    for(int i=0; i<bomb_number; i++) {rnum();}
+}
+
+void print_map(){
+    for(int i=1; i<row-1; i++){
+        for(int i=1; i<column-1; i++){
+           cout<<"--------";
+        }
+        cout<<"\n"; 
+        for(int j=1; j<column-1; j++){
+            if(bomb_map[i][j]==1) cout<<"*\t|";
+            else cout<<"0\t|";
+        }
+        cout<<"\n";
+    }
+    for(int i=1; i<column-1; i++){
+        cout<<"--------";
+    }
+    cout<<"\ndesigner:Li Bo 21302010068";
+}
+
+int main(){
+    creat_map();
+    creat_bomb();
+    print_map();
+}
