@@ -1,0 +1,183 @@
+#include<cstdio>
+#include<windows.h>
+#include<iostream>
+#include<ctime>
+#include<ctype.h>
+using namespace std;
+int row,column,bomb_number;
+int **bomb_map;
+int **bomb_map_update;
+int **player_map;
+void creat_map(){
+    cout<<"please input row column and bomb number(LB)"<<endl;
+    while(!(cin>>row>>column>>bomb_number) || row*column<bomb_number || row<=0 || column<=0 || bomb_number<=0){
+        cout<<"wrong,please input row column and bomb number(LB)"<<endl;
+        cin.clear();
+        cin.sync();
+    }
+    row+=2;
+    column+=2;
+    bomb_map = new int*[row];
+    bomb_map_update = new int*[row];
+    player_map = new int*[row];
+    for(int i=0; i<row; i++){
+        bomb_map[i] = new int[column]();
+        bomb_map_update[i] = new int[column]();
+        player_map[i] = new int[column]();
+    }
+}
+
+void initialize_player_map(){
+    for(int i=0; i<column; i++){
+        player_map[0][i] = i;
+    }
+    for(int j=0; j<row; j++){
+        player_map[j][0] = j;
+    }
+    for(int i=1;i<column-1;i++){
+        for(int j=1;j<row-1;j++){
+            player_map[i][j]=-1;
+        }
+    }
+}
+
+void rnum(){
+    srand(time(NULL));
+    int x = rand()%(row-2)+1;
+    int y = rand()%(column-2)+1;
+    do{
+        if(bomb_map[x][y]==0){
+            bomb_map[x][y]=1;
+            break;
+        }
+        x = rand()%(row-2)+1;
+        y = rand()%(column-2)+1;
+    }while(1);
+}
+
+void creat_bomb(){
+    for(int i=0; i<bomb_number; i++) {rnum();}
+}
+
+void update_map(){
+    for(int i=1; i<row-1; i++){
+        for(int j=1; j<column-1;j++){
+            for(int k=i-1; k<i+2;k++){
+                for(int w=j-1; w<j+2; w++){
+                    bomb_map_update[i][j]+=bomb_map[k][w];
+                }
+            }
+        }
+    }
+}
+
+void print_player_map(){
+    for(int i=0; i<row-1; i++){
+        for(int i=0; i<column-1; i++){
+           cout<<"--------";
+        }
+        cout<<"\n"; 
+        for(int j=0; j<column-1; j++){
+            if(player_map[i][j]==-1 && i!=0) {cout<<"#\t|";}
+            else if(i==0 || j==0)
+            {
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),3);
+                cout<<"   "<<player_map[i][j]<<"\t";
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),7);
+                if(j==0 && i!=0) {cout<<"|";}
+                }
+            else
+            {
+                cout<<"   "<<player_map[i][j]<<"\t|";
+            }
+        }
+        cout<<"\n";
+    }
+    for(int i=0; i<column-1; i++){
+        cout<<"--------";
+    }
+}
+
+void gameover(){
+    int remain_number=0;
+    for(int i=1;i<row-1;i++)
+    for(int j=1;j<column-1;j++){
+        if(player_map[i][j]==-1){
+            remain_number++;
+        }
+    }
+    if(remain_number == bomb_number){
+        system("cls");
+        print_player_map();
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_RED);
+        cout<<"\nCongratulations on finding all the mines";
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),7);
+        exit(0);
+    }
+}
+
+void print_bomb_map(){
+    for(int i=0; i<row-1; i++){
+     for(int i=0; i<column-1; i++){
+           cout<<"--------";
+        }
+        cout<<"\n"; 
+        for(int j=0; j<column-1; j++){
+            if(i==0 || j==0) {
+                 SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),3);
+                 cout<<"   "<<player_map[i][j]<<"\t";
+                 SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),7);
+                 if(j==0 && i!=0) {cout<<"|";}
+                }
+            else if(bomb_map[i][j]==1){
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_RED);
+                cout<<"*\t";
+                SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),7);
+                cout<<"|";
+            }
+            else cout<<bomb_map_update[i][j]<<"\t|";
+        }
+        cout<<"\n";
+    }
+    for(int i=0; i<column-1; i++){
+        cout<<"--------";
+    }
+    cout<<"\ndesigner:Li Bo 21302010068";
+}
+
+void update_playermap(){
+    int player_row,player_column;
+    cout<<"\nplease input point"<<endl;
+    while(1){
+        while(!(cin>>player_row>>player_column) || player_row<=0 || player_column<=0 || player_row>=row-1 || player_column>=column-1 ){
+        cout<<"wrong input, please input again"<<endl;
+        cin.clear();
+        cin.sync();
+    }
+        if(bomb_map[player_row][player_column]==1){
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),FOREGROUND_RED);
+        cout<<"bomb!game over"<<endl;
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),7);
+        print_bomb_map();
+        exit(0);
+    }
+        else{
+            player_map[player_row][player_column]=bomb_map_update[player_row][player_column];
+        }
+        gameover();
+        system("cls");
+        print_player_map();
+        cout<<"\nplease input point"<<endl;
+        cin.clear();
+        cin.sync();
+    }
+}
+
+int main(){
+    creat_map();
+    creat_bomb();
+    update_map();
+    initialize_player_map();
+    print_player_map();
+    update_playermap();
+}
